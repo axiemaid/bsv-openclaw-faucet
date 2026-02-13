@@ -106,7 +106,7 @@ function saveLedger(ledger) {
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(ledger, null, 2));
 }
 
-const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function checkCooldown(address) {
   const ledger = loadLedger();
