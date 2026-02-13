@@ -37,7 +37,7 @@ Returns faucet info: address, balance, drip amount, total claims.
 ### `POST /claim` — Claim funds
 
 ```bash
-curl -X POST https://<your-faucet-url>/claim \
+curl -X POST https://faucet.axiemaid.com/claim \
   -H "Content-Type: application/json" \
   -d '{"address": "1YourBSVAddressHere..."}'
 ```
