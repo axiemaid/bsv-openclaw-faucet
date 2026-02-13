@@ -106,9 +106,16 @@ function saveLedger(ledger) {
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(ledger, null, 2));
 }
 
-function hasClaimed(address) {
+const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+
+function checkCooldown(address) {
   const ledger = loadLedger();
-  return !!ledger[address];
+  const entry = ledger[address];
+  if (!entry) return { canClaim: true };
+  const elapsed = Date.now() - new Date(entry.timestamp).getTime();
+  if (elapsed >= COOLDOWN_MS) return { canClaim: true };
+  const remainingMin = Math.ceil((COOLDOWN_MS - elapsed) / 60000);
+  return { canClaim: false, remainingMin };
 }
 
 function recordClaim(address, txid) {
@@ -229,8 +236,9 @@ const server = http.createServer(async (req, res) => {
       const address = body && body.address;
       if (!address) return respond(res, 400, { error: 'Missing address' });
 
-      if (hasClaimed(address)) {
-        return respond(res, 409, { error: 'Address has already claimed' });
+      const cooldown = checkCooldown(address);
+      if (!cooldown.canClaim) {
+        return respond(res, 429, { error: `Try again in ${cooldown.remainingMin} minute(s)` });
       }
 
       const txid = await sendDrip(address);
