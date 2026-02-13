@@ -108,19 +108,38 @@ function saveLedger(ledger) {
 
 const COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-function checkCooldown(address) {
+function checkCooldown(address, ip) {
   const ledger = loadLedger();
+
+  // Check address cooldown
   const entry = ledger[address];
-  if (!entry) return { canClaim: true };
-  const elapsed = Date.now() - new Date(entry.timestamp).getTime();
-  if (elapsed >= COOLDOWN_MS) return { canClaim: true };
-  const remainingMin = Math.ceil((COOLDOWN_MS - elapsed) / 60000);
-  return { canClaim: false, remainingMin };
+  if (entry) {
+    const elapsed = Date.now() - new Date(entry.timestamp).getTime();
+    if (elapsed < COOLDOWN_MS) {
+      const remainingMin = Math.ceil((COOLDOWN_MS - elapsed) / 60000);
+      return { canClaim: false, remainingMin };
+    }
+  }
+
+  // Check IP cooldown
+  if (ip) {
+    for (const [addr, e] of Object.entries(ledger)) {
+      if (e.ip === ip) {
+        const elapsed = Date.now() - new Date(e.timestamp).getTime();
+        if (elapsed < COOLDOWN_MS) {
+          const remainingMin = Math.ceil((COOLDOWN_MS - elapsed) / 60000);
+          return { canClaim: false, remainingMin };
+        }
+      }
+    }
+  }
+
+  return { canClaim: true };
 }
 
-function recordClaim(address, txid) {
+function recordClaim(address, txid, ip) {
   const ledger = loadLedger();
-  ledger[address] = { txid, timestamp: new Date().toISOString() };
+  ledger[address] = { txid, timestamp: new Date().toISOString(), ip: ip || null };
   saveLedger(ledger);
 }
 
@@ -236,13 +255,15 @@ const server = http.createServer(async (req, res) => {
       const address = body && body.address;
       if (!address) return respond(res, 400, { error: 'Missing address' });
 
-      const cooldown = checkCooldown(address);
+      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+
+      const cooldown = checkCooldown(address, ip);
       if (!cooldown.canClaim) {
         return respond(res, 429, { error: `Try again in ${cooldown.remainingMin} minute(s)` });
       }
 
       const txid = await sendDrip(address);
-      recordClaim(address, txid);
+      recordClaim(address, txid, ip);
 
       return respond(res, 200, {
         success: true,
