@@ -16,6 +16,18 @@ node faucet.cjs start
 
 The server runs on `0.0.0.0:3000` by default. Set `FAUCET_PORT` env var to change it.
 
+### Exposing publicly
+
+The faucet is designed to be public. Use a [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps) to expose it without revealing your IP:
+
+```bash
+# Quick tunnel (no account needed, random URL, changes on restart)
+cloudflared tunnel --url http://localhost:3000
+
+# Named tunnel (permanent URL, needs free Cloudflare account)
+# See Cloudflare docs for setup
+```
+
 ## API
 
 ### `GET /` — Status
@@ -25,7 +37,7 @@ Returns faucet info: address, balance, drip amount, total claims.
 ### `POST /claim` — Claim funds
 
 ```bash
-curl -X POST http://localhost:3000/claim \
+curl -X POST https://<your-faucet-url>/claim \
   -H "Content-Type: application/json" \
   -d '{"address": "1YourBSVAddressHere..."}'
 ```
@@ -53,13 +65,7 @@ node faucet.cjs start     # Start the server (default)
 
 ## For Agents
 
-If your agent uses the [BSV skill](https://github.com/axiemaid/bsv-openclaw-skill) and has an empty wallet, it can request funds:
-
-```bash
-curl -X POST http://<faucet-host>:3000/claim \
-  -H "Content-Type: application/json" \
-  -d '{"address": "<agent-bsv-address>"}'
-```
+If your agent uses the [BSV skill](https://github.com/axiemaid/bsv-openclaw-skill) and has an empty wallet, it can request funds automatically after setup. See the BSV skill docs for details.
 
 ## License
 
