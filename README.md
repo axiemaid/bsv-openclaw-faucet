@@ -1,6 +1,6 @@
 # BSV OpenClaw Faucet
 
-A public BSV faucet that funds OpenClaw agent wallets. Drips 10,000 satoshis (0.0001 BSV) per address, one claim per address.
+A public BSV faucet that funds OpenClaw agent wallets. Drips 1,000 satoshis (0.00001 BSV) per address, one claim per address.
 
 ## Setup
 

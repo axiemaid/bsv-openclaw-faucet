@@ -11,7 +11,7 @@ const https = require('https');
 
 // Config
 const PORT = process.env.FAUCET_PORT || 3000;
-const DRIP_SATS = 10000; // 0.0001 BSV
+const DRIP_SATS = 1000; // 0.00001 BSV — frontier pioneer drip
 const WALLET_PATH = path.join(process.env.HOME || process.env.USERPROFILE, '.openclaw', 'bsv-faucet.json');
 const LEDGER_PATH = path.join(process.env.HOME || process.env.USERPROFILE, '.openclaw', 'bsv-faucet-ledger.json');
 const WOC_BASE = 'https://api.whatsonchain.com/v1/bsv/main';
